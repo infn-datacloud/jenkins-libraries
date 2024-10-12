@@ -9,3 +9,23 @@ void pushImage(String srcImage, String targetImageName, String registryUrl, Stri
         docker.image("${targetImageName}").push("${COMMIT_SHA}")
     }
 }
+
+void updateReadMe(
+    String provider,
+    String imageName,
+    String registryUser,
+    String registryPassword,
+    String registryHost
+    ) {
+    // Login to target registry, retrieve docker image and push it to the registry
+    sh """docker run --rm \
+        -v ${WORKSPACE}:/myvol \
+        -e DOCKER_USER=${registryUser} \
+        -e DOCKER_PASS=${registryPassword} \
+        chko/docker-pushrm:1 \
+        --provider ${provider} \
+        --file /myvol/README.md \
+        --debug \
+        ${registryHost}/${imageName}
+        """
+    }
