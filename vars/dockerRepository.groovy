@@ -1,5 +1,4 @@
 void pushImage(String srcImage, String targetImageName, String registryUrl, String registryCredentialsName) {
-    // Login to target registry, retrieve docker image and push it to the registry
     sh "docker tag ${srcImage} ${targetImageName}"
     docker.withRegistry("${registryUrl}", "${registryCredentialsName}") {
         if ("${BRANCH_NAME}" == 'main') {
@@ -17,7 +16,6 @@ void updateReadMe(
     String registryPassword,
     String registryHost
     ) {
-    // Login to target registry, retrieve docker image and push it to the registry
     sh """docker run --rm \
         -v ${WORKSPACE}:/myvol \
         -e DOCKER_USER=${registryUser} \
@@ -28,4 +26,4 @@ void updateReadMe(
         --debug \
         ${registryHost}/${imageName}
         """
-    }
+}
