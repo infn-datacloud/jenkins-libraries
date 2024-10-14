@@ -10,11 +10,11 @@ void pushImage(String srcImage, String targetImageName, String registryUrl, Stri
 }
 
 void updateReadMe(
-    String provider,
     String imageName,
     String registryUser,
     String registryPassword,
-    String registryHost
+    String registryHost,
+    String provider = 'dockerhub'
     ) {
     sh """docker run --rm \
         -v ${WORKSPACE}:/myvol \
@@ -26,4 +26,4 @@ void updateReadMe(
         --debug \
         ${registryHost}/${imageName}
         """
-}
+    }
