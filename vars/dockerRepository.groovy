@@ -26,4 +26,4 @@ void updateReadMe(
         --debug \
         ${registryHost}/${imageName}
         """
-    }
+}

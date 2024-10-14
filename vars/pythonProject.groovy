@@ -1,4 +1,4 @@
-void formatCode(String pythonVersion = "3.12", String srcDir = "src") {
+void formatCode(String pythonVersion = '3.12', String srcDir = 'src') {
     docker
     .image("ghcr.io/withlogicco/poetry:1.8.3-python-${pythonVersion}-slim")
     .inside('-e POETRY_VIRTUALENVS_IN_PROJECT=true -u root:root') {
@@ -8,12 +8,17 @@ void formatCode(String pythonVersion = "3.12", String srcDir = "src") {
     }
 }
 
-void testCode(String dockerArgs = '', String coverageDir = 'coverage-reports') {
+void testCode(
+    String pythonVersion = '3.12',
+    String dockerArgs = '',
+    String coveragercId = '.coveragerc',
+    String coverageDir = 'coverage-reports'
+    ) {
     docker
     .image("ghcr.io/withlogicco/poetry:1.8.3-python-${pythonVersion}-slim")
     .inside("""-e POETRY_VIRTUALENVS_IN_PROJECT=true -u root:root ${dockerArgs}""") {
         sh 'poetry install'
-        configFileProvider([configFile(fileId:  '.coveragerc', variable: 'COVERAGERC')]) {
+        configFileProvider([configFile(fileId: "${coveragercId}", variable: 'COVERAGERC')]) {
                 sh """poetry run pytest \
                 --resetdb \
                 --cov \
