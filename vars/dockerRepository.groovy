@@ -18,7 +18,8 @@ void pushImage(
     String registryCredentialsName,
     String latestMatch = 'python-3.12'
     ) {
-    (imageName, imageTag) = srcImage.tag().tokenize(':')
+    /* groovylint-disable-next-line NoDef, UnusedVariable, VariableTypeRequired */
+    def (imageName, imageTag) = srcImage.tag().tokenize(':')
     docker.withRegistry("${registryUrl}", "${registryCredentialsName}") {
         if ("${env.BRANCH_NAME}" == 'main') {
             gitTag = sh(returnStdout: true, script: 'git tag --sort version:refname | tail -1').trim()
