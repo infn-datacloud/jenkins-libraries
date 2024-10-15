@@ -71,34 +71,10 @@ void buildAndPushImage(
     stage('Build image') {
         img = buildImage(imageName, dockerfile, pythonVersion)
     }
-    post {
-        success {
-            echo "Docker image ${imageName} build succeeded!"
-        }
-        failure {
-            echo "Docker image ${imageName} build failed!"
-        }
-    }
     stage('Push image to registry') {
         pushImage(img, registryUrl, registryCredentialsName)
     }
-    post {
-        success {
-            echo "Docker image ${imageName} push to ${registryUrl} succeeded!"
-        }
-        failure {
-            echo "Docker image ${imageName} push to ${registryUrl} failed!"
-        }
-    }
     stage('Update repository description') {
         updateReadMe(img, registryUser, registryPassword, registryHost, registryType)
-    }
-    post {
-        success {
-            echo "Docker image ${imageName} description update succeeded!"
-        }
-        failure {
-            echo "Docker image ${imageName} description update failed!"
-        }
     }
 }
