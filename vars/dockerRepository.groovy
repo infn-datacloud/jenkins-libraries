@@ -53,7 +53,7 @@ void updateReadMe(
         --debug \
         ${registryHost}/${imageName}
         """
-    }
+}
 
 /* groovylint-disable-next-line BuilderMethodWithSideEffects, FactoryMethodName */
 void buildAndPushImage(
@@ -67,19 +67,38 @@ void buildAndPushImage(
     String registryType = 'dockerhub',
     String pythonVersion = ''
     ) {
+    Object img
     stage('Build image') {
-        script {
-            img = buildImage(imageName, dockerfile, pythonVersion)
+        img = buildImage(imageName, dockerfile, pythonVersion)
+    }
+    post {
+        success {
+            echo "Docker image ${imageName} build succeeded!"
+        }
+        failure {
+            echo "Docker image ${imageName} build failed!"
         }
     }
     stage('Push image to registry') {
-        script {
-            pushImage(img, registryUrl, registryCredentialsName)
+        pushImage(img, registryUrl, registryCredentialsName)
+    }
+    post {
+        success {
+            echo "Docker image ${imageName} push to ${registryUrl} succeeded!"
+        }
+        failure {
+            echo "Docker image ${imageName} push to ${registryUrl} failed!"
         }
     }
     stage('Update repository description') {
-        script {
-            updateReadMe(img, registryUser, registryPassword, registryHost, registryType)
+        updateReadMe(img, registryUser, registryPassword, registryHost, registryType)
+    }
+    post {
+        success {
+            echo "Docker image ${imageName} description update succeeded!"
+        }
+        failure {
+            echo "Docker image ${imageName} description update failed!"
         }
     }
 }
