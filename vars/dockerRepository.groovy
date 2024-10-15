@@ -17,7 +17,7 @@ void pushImage(
     Object srcImage,
     String registryUrl,
     String registryCredentialsName,
-    String latestMatch = 'python-3.12'
+    String latestMatch = 'python-3.11'
     ) {
     /* groovylint-disable-next-line NoDef, UnusedVariable, VariableTypeRequired */
     def (imageName, imageTag) = srcImage.tag().tokenize(':')
@@ -31,9 +31,9 @@ void pushImage(
             }
             srcImage.push("${gitTag}-${imageTag}")
         } else {
-            srcImage.push("${imageTag}-${env.BRANCH_NAME}")
+            srcImage.push("${env.BRANCH_NAME}-${imageTag}")
         }
-        srcImage.push("${imageTag}-${env.GIT_COMMIT}")
+        srcImage.push("${env.GIT_COMMIT}-${imageTag}")
     }
 }
 
