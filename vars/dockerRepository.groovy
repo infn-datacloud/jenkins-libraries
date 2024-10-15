@@ -1,10 +1,10 @@
 /* groovylint-disable-next-line BuilderMethodWithSideEffects, FactoryMethodName */
-Image buildImage(String imageName, String dockerfile, String pythonVersion = '') {
+Object buildImage(String imageName, String dockerfile, String pythonVersion = '') {
     buildArgs = ''
     tags = ''
-    if ("${pythonVersion}" == '') {
+    if ("${pythonVersion}" != '') {
         buildArgs += "--build-arg PYTHON_VERSION=${pythonVersion}"
-        tags += "python-${item.value}"
+        tags += "python-${pythonVersion}"
     }
     if ("${tags}".length() > 0) {
         imageName = "${imageName}:${tags}"
@@ -13,13 +13,12 @@ Image buildImage(String imageName, String dockerfile, String pythonVersion = '')
 }
 
 void pushImage(
-    Image srcImage,
+    Object srcImage,
     String registryUrl,
     String registryCredentialsName,
     String latestMatch = 'python-3.12'
     ) {
-    imageName = Image.imageName()
-    imageTag = Image.tag()
+    (imageName, imageTag) = srcImage.tag().tokenize(':')
     docker.withRegistry("${registryUrl}", "${registryCredentialsName}") {
         if ("${env.BRANCH_NAME}" == 'main') {
             gitTag = sh(returnStdout: true, script: 'git tag --sort version:refname | tail -1').trim()
@@ -37,7 +36,7 @@ void pushImage(
 }
 
 void updateReadMe(
-    Image srcImage,
+    Object srcImage,
     String registryUser,
     String registryPassword,
     String registryHost,
@@ -68,21 +67,19 @@ void buildAndPushImage(
     String registryType = 'dockerhub',
     String pythonVersion = ''
     ) {
-    stages {
-        stage('Build image') {
-            script {
-                img = buildImage(imageName, dockerfile, pythonVersion)
-            }
+    stage('Build image') {
+        script {
+            img = buildImage(imageName, dockerfile, pythonVersion)
         }
-        stage('Push image to registry') {
-            script {
-                pushImage(img, registryUrl, registryCredentialsName)
-            }
+    }
+    stage('Push image to registry') {
+        script {
+            pushImage(img, registryUrl, registryCredentialsName)
         }
-        stage('Update repository description') {
-            script {
-                updateReadMe(image, registryUser, registryPassword, registryHost, registryType)
-            }
+    }
+    stage('Update repository description') {
+        script {
+            updateReadMe(img, registryUser, registryPassword, registryHost, registryType)
         }
     }
 }
