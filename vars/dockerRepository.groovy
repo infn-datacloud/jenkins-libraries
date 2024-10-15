@@ -1,15 +1,16 @@
 /* groovylint-disable-next-line BuilderMethodWithSideEffects, FactoryMethodName */
-Object buildImage(String imageName, String dockerfile, String pythonVersion = '') {
+Object buildImage(String imageName, String dockerfile, String pythonVersion = '', List<String> customTags = []) {
     buildArgs = ''
-    tags = ''
+    name = imageName
     if ("${pythonVersion}" != '') {
         buildArgs += "--build-arg PYTHON_VERSION=${pythonVersion}"
-        tags += "python-${pythonVersion}"
+        customTags.add("python-${pythonVersion}")
     }
-    if ("${tags}".length() > 0) {
-        imageName = "${imageName}:${tags}"
+    if (customTags.length() > 0) {
+        tags = customTags.join('-')
+        name += ":${tags}"
     }
-    return docker.build("${imageName}", "-f ${dockerfile} ${buildArgs} .")
+    return docker.build("${name}", "-f ${dockerfile} ${buildArgs} .")
 }
 
 void pushImage(
@@ -66,11 +67,12 @@ void buildAndPushImage(
     String registryPassword,
     String registryHost,
     String registryType = 'dockerhub',
-    String pythonVersion = ''
+    String pythonVersion = '',
+    List<String> customTags = []
     ) {
     Object img
     stage('Build image') {
-        img = buildImage(imageName, dockerfile, pythonVersion)
+        img = buildImage(imageName, dockerfile, pythonVersion, customTags)
     }
     stage('Push image to registry') {
         pushImage(img, registryUrl, registryCredentialsName)
