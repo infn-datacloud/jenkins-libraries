@@ -6,7 +6,7 @@ Object buildImage(String imageName, String dockerfile, String pythonVersion = ''
         buildArgs += "--build-arg PYTHON_VERSION=${pythonVersion}"
         customTags.add("python-${pythonVersion}")
     }
-    if (customTags.length() > 0) {
+    if (customTags.size() > 0) {
         tags = customTags.join('-')
         name += ":${tags}"
     }
