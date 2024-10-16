@@ -1,56 +1,66 @@
-String getDockerImage(String pythonVersion = '3.12', String poetryVersion = '1.8.3', boolean isSlim = true) {
-    String dockerImage = "ghcr.io/withlogicco/poetry:${poetryVersion}-python-${pythonVersion}"
-    if (isSlim) {
+String getDockerImage(Map args) {
+    Map kwargs = [
+        pythonVersion: '3.12',
+        poetryVersion: '1.8.3',
+        isSlim: true
+    ]
+    kwargs << args
+    String dockerImage = "ghcr.io/withlogicco/poetry:${kwargs.poetryVersion}-python-${kwargs.pythonVersion}"
+    if (kwargs.isSlim) {
         dockerImage += '-slim'
     }
     return dockerImage
 }
 
-void formatCode(
-    String pythonVersion = '3.12',
-    String poetryVersion = '1.8.3',
-    boolean imageIsSlim = true,
-    String srcDir = 'src'
-    ) {
+void formatCode(Map args) {
+    Map kwargs = [
+        pythonVersion = '3.12',
+        poetryVersion = '1.8.3',
+        imageIsSlim = true,
+        srcDir = 'src'
+    ]
+    kwargs << args
     String dockerImage = getDockerImage(
-        poetryVersion: poetryVersion,
-        pythonVersion: pythonVersion,
-        isSlim: imageIsSlim
+        poetryVersion: kwargs.poetryVersion,
+        pythonVersion: kwargs.pythonVersion,
+        isSlim: kwargs.imageIsSlim
         )
     docker
     .image("${dockerImage}")
     .inside('-e POETRY_VIRTUALENVS_IN_PROJECT=true -u root:root') {
         sh 'poetry install'
-        sh "ruff check ${srcDir}"
+        sh "ruff check ${kwargs.srcDir}"
         sh 'ruff format --check .'
     }
 }
 
-void testCode(
-    String pythonVersion = '3.12',
-    String poetryVersion = '1.8.3',
-    String dockerArgs = '',
-    boolean imageIsSlim = true,
-    String pytestArgs = '',
-    String coverageDir = 'coverage-reports',
-    String coveragercId = '.coveragerc'
-    ) {
+void testCode(Map args) {
+    Map kwargs = [
+        pythonVersion: '3.12',
+        poetryVersion: '1.8.3',
+        dockerArgs: '',
+        imageIsSlim: true,
+        pytestArgs: '',
+        coverageDir: 'coverage-reports',
+        coveragercId: '.coveragerc'
+    ]
+    kwargs << args
     String dockerImage = getDockerImage(
-        poetryVersion: poetryVersion,
-        pythonVersion: pythonVersion,
-        isSlim: imageIsSlim
+        poetryVersion: kwargs.poetryVersion,
+        pythonVersion: kwargs.pythonVersion,
+        isSlim: kwargs.imageIsSlim
         )
     docker
     .image("${dockerImage}")
-    .inside("""-e POETRY_VIRTUALENVS_IN_PROJECT=true -u root:root ${dockerArgs}""") {
+    .inside("""-e POETRY_VIRTUALENVS_IN_PROJECT=true -u root:root ${kwargs.dockerArgs}""") {
         sh 'poetry install'
-        configFileProvider([configFile(fileId: "${coveragercId}", variable: 'COVERAGERC')]) {
+        configFileProvider([configFile(fileId: "${kwargs.coveragercId}", variable: 'COVERAGERC')]) {
                 sh """poetry run pytest \
-                ${pytestArgs} \
+                ${kwargs.pytestArgs} \
                 --cov \
                 --cov-config=${COVERAGERC} \
-                --cov-report=xml:${coverageDir}/coverage-${pythonVersion}.xml \
-                --cov-report=html:${coverageDir}/htmlcov-${pythonVersion}"""
+                --cov-report=xml:${kwargs.coverageDir}/coverage-${kwargs.pythonVersion}.xml \
+                --cov-report=html:${kwargs.coverageDir}/htmlcov-${kwargs.pythonVersion}"""
         }
     }
 }

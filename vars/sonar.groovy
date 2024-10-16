@@ -1,23 +1,22 @@
-void analysis(
-    String sonarToken,
-    String sonarProject,
-    String sonarOrganization,
-    String sonarHost = 'https://sonar.cloud.io/',
-    String coverageDir = 'coverage-reports',
-    String srcDir = 'src',
-    String testsDir = 'tests',
-    String pythonVersions = '3.12'
-) {
-    archiveArtifacts artifacts: "${coverageDir}/**/*", fingerprint: true
+void analysis(Map args) {
+    Map kwargs = [
+        sonarHost: 'https://sonar.cloud.io/',
+        coverageDir: 'coverage-reports',
+        srcDir: 'src',
+        testsDir: 'tests',
+        pythonVersions: '3.12'
+    ]
+    kwargs << args
+    archiveArtifacts artifacts: "${kwargs.coverageDir}/**/*", fingerprint: true
     sh """docker run --rm \
-        -e SONAR_HOST_URL=${sonarHost} \
-        -e SONAR_TOKEN=${sonarToken} \
+        -e SONAR_HOST_URL=${kwargs.sonarHost} \
+        -e SONAR_TOKEN=${kwargs.sonarToken} \
         -v ${WORKSPACE}:/usr/src \
         sonarsource/sonar-scanner-cli \
-        -D sonar.projectKey=${sonarOrganization}_${sonarProject} \
-        -D sonar.organization=${sonarOrganization} \
-        -D sonar.sources=${srcDir} \
-        -D sonar.tests=${testsDir} \
-        -D sonar.python.version='${pythonVersions}'
+        -D sonar.projectKey=${kwargs.sonarOrganization}_${kwargs.sonarProject} \
+        -D sonar.organization=${kwargs.sonarOrganization} \
+        -D sonar.sources=${kwargs.srcDir} \
+        -D sonar.tests=${kwargs.testsDir} \
+        -D sonar.python.version='${kwargs.pythonVersions}'
         """
 }
