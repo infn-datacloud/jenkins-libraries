@@ -14,10 +14,10 @@ String getDockerImage(Map args) {
 
 void formatCode(Map args) {
     Map kwargs = [
-        pythonVersion = '3.12',
-        poetryVersion = '1.8.3',
-        imageIsSlim = true,
-        srcDir = 'src'
+        pythonVersion: '3.12',
+        poetryVersion: '1.8.3',
+        imageIsSlim: true,
+        srcDir: 'src'
     ]
     kwargs << args
     String dockerImage = getDockerImage(
