@@ -31,7 +31,7 @@ void testCode(
     String poetryVersion = '1.8.3',
     String dockerArgs = '',
     boolean imageIsSlim = true,
-    Stirng pytestArgs = '',
+    String pytestArgs = '',
     String coverageDir = 'coverage-reports',
     String coveragercId = '.coveragerc'
     ) {
