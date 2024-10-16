@@ -53,23 +53,12 @@ void updateReadMe(Map args) {
 }
 
 /* groovylint-disable-next-line BuilderMethodWithSideEffects, FactoryMethodName */
-void buildAndPushImage(
-    Map args
-    String imageName,
-    String dockerfile,
-    String registryUrl,
-    String registryCredentialsName,
-    String registryUser,
-    String registryPassword,
-    String registryHost,
-    String registryType = 'dockerhub',
-    String pythonVersion = '',
-    List<String> customTags = []
-    ) {
+void buildAndPushImage(Map args) {
     Map kwargs = [registryType: 'dockerhub', pythonVersion: '', customTags: []]
     kwargs << args
+    Object img
     stage('Build image') {
-        Object img = buildImage(
+        img = buildImage(
             imageName: kwargs.imageName,
             dockerfile: kwargs.dockerfile,
             pythonVersion: kwargs.pythonVersion,
@@ -78,14 +67,14 @@ void buildAndPushImage(
     }
     stage('Push image to registry') {
         pushImage(
-            srcImage: kwargs.img,
+            srcImage: img,
             registryUrl: kwargs.registryUrl,
             registryCredentialsName: kwargs.registryCredentialsName
             )
     }
     stage('Update repository description') {
         updateReadMe(
-            srcImage: kwargs.img,
+            srcImage: img,
             registryUser: kwargs.registryUser,
             registryPassword: kwargs.registryPassword,
             registryHost: kwargs.registryHost,
