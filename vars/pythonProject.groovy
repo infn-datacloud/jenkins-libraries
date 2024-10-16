@@ -6,7 +6,12 @@ String getDockerImage(String poetryVersion = '1.8.3', String pythonVersion = '3.
     return dockerImage
 }
 
-void formatCode(String pythonVersion = '3.12', String srcDir = 'src', boolean isSlim = true) {
+void formatCode(
+    String pythonVersion = '3.12',
+    String srcDir = 'src',
+    boolean isSlim = true,
+    String poetryVersion = '1.8.3'
+    ) {
     String dockerImage = getDockerImage(poetryVersion, pythonVersion, isSlim)
     docker
     .image("${dockerImage}")
