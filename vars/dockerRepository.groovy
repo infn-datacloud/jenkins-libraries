@@ -1,64 +1,60 @@
 /* groovylint-disable-next-line BuilderMethodWithSideEffects, FactoryMethodName */
-Object buildImage(String imageName, String dockerfile, String pythonVersion = '', List<String> customTags = []) {
-    buildArgs = ''
-    name = imageName
-    if ("${pythonVersion}" != '') {
-        buildArgs += "--build-arg PYTHON_VERSION=${pythonVersion}"
-        customTags.add("python-${pythonVersion}")
+Object buildImage(Map args) {
+    Map kwargs = [pythonVersion: '', customTags: []]
+    kwargs << args
+    String buildArgs = ''
+    String name = kwargs.imageName
+    if ("${kwargs.pythonVersion}" != '') {
+        buildArgs += "--build-arg PYTHON_VERSION=${kwargs.pythonVersion}"
+        kwargs.customTags.add("python-${kwargs.pythonVersion}")
     }
-    if (customTags.size() > 0) {
-        tags = customTags.join('-')
+    if (kwargs.customTags.size() > 0) {
+        String tags = kwargs.customTags.join('-')
         name += ":${tags}"
     }
-    return docker.build("${name}", "-f ${dockerfile} ${buildArgs} .")
+    return docker.build("${name}", "-f ${kwargs.dockerfile} ${buildArgs} .")
 }
 
-void pushImage(
-    Object srcImage,
-    String registryUrl,
-    String registryCredentialsName,
-    String latestMatch = 'python-3.11'
-    ) {
+void pushImage(Map args) {
+    Map kwargs = [latestMatch: 'python-3.11']
+    kwargs << args
     /* groovylint-disable-next-line NoDef, UnusedVariable, VariableTypeRequired */
-    def (imageName, imageTag) = srcImage.tag().tokenize(':')
-    docker.withRegistry("${registryUrl}", "${registryCredentialsName}") {
+    def (imageName, imageTag) = kwargs.srcImage.tag().tokenize(':')
+    docker.withRegistry("${kwargs.registryUrl}", "${kwargs.registryCredentialsName}") {
         if ("${env.BRANCH_NAME}" == 'main') {
-            gitTag = sh(returnStdout: true, script: 'git tag --sort version:refname | tail -1').trim()
-            srcImage.push()
+            String gitTag = sh(returnStdout: true, script: 'git tag --sort version:refname | tail -1').trim()
+            kwargs.srcImage.push()
             if (imageTag.contains("${latestMatch}")) {
-                srcImage.push('latest')
-                srcImage.push("${gitTag}")
+                kwargs.srcImage.push('latest')
+                kwargs.srcImage.push("${gitTag}")
             }
-            srcImage.push("${gitTag}-${imageTag}")
+            kwargs.srcImage.push("${gitTag}-${imageTag}")
         } else {
-            srcImage.push("${env.BRANCH_NAME}-${imageTag}")
+            kwargs.srcImage.push("${env.BRANCH_NAME}-${imageTag}")
         }
-        srcImage.push("${env.GIT_COMMIT}-${imageTag}")
+        kwargs.srcImage.push("${env.GIT_COMMIT}-${imageTag}")
     }
 }
 
-void updateReadMe(
-    Object srcImage,
-    String registryUser,
-    String registryPassword,
-    String registryHost,
-    String registryType = 'dockerhub'
-    ) {
-    imageName = srcImage.imageName()
+void updateReadMe(Map args) {
+    Map kwargs = [registryType: 'dockerhub']
+    kwargs << args
+    String imageName = kwargs.srcImage.imageName()
     sh """docker run --rm \
         -v ${WORKSPACE}:/myvol \
-        -e DOCKER_USER=${registryUser} \
-        -e DOCKER_PASS=${registryPassword} \
+        -e DOCKER_USER=${kwargs.registryUser} \
+        -e DOCKER_PASS=${kwargs.registryPassword} \
         chko/docker-pushrm:1 \
-        --provider ${registryType} \
+        --provider ${kwargs.registryType} \
         --file /myvol/README.md \
         --debug \
-        ${registryHost}/${imageName}
+        ${kwargs.registryHost}/${imageName}
         """
 }
 
 /* groovylint-disable-next-line BuilderMethodWithSideEffects, FactoryMethodName */
 void buildAndPushImage(
+    Map args
     String imageName,
     String dockerfile,
     String registryUrl,
@@ -70,14 +66,30 @@ void buildAndPushImage(
     String pythonVersion = '',
     List<String> customTags = []
     ) {
-    Object img
+    Map kwargs = [registryType: 'dockerhub', pythonVersion: '', customTags: []]
+    kwargs << args
     stage('Build image') {
-        img = buildImage(imageName, dockerfile, pythonVersion, customTags)
+        Object img = buildImage(
+            imageName: kwargs.imageName,
+            dockerfile: kwargs.dockerfile,
+            pythonVersion: kwargs.pythonVersion,
+            customTags: kwargs.customTags
+            )
     }
     stage('Push image to registry') {
-        pushImage(img, registryUrl, registryCredentialsName)
+        pushImage(
+            srcImage: kwargs.img,
+            registryUrl: kwargs.registryUrl,
+            registryCredentialsName: kwargs.registryCredentialsName
+            )
     }
     stage('Update repository description') {
-        updateReadMe(img, registryUser, registryPassword, registryHost, registryType)
+        updateReadMe(
+            srcImage: kwargs.img,
+            registryUser: kwargs.registryUser,
+            registryPassword: kwargs.registryPassword,
+            registryHost: kwargs.registryHost,
+            registryType: kwargs.registryType
+            )
     }
 }
