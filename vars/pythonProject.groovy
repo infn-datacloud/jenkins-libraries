@@ -1,4 +1,4 @@
-String getDockerImage(String poetryVersion = '1.8.3', String pythonVersion = '3.12', boolean isSlim = true) {
+String getDockerImage(String pythonVersion = '3.12', String poetryVersion = '1.8.3', boolean isSlim = true) {
     String dockerImage = "ghcr.io/withlogicco/poetry:${poetryVersion}-python-${pythonVersion}"
     if (isSlim) {
         dockerImage += '-slim'
@@ -8,11 +8,15 @@ String getDockerImage(String poetryVersion = '1.8.3', String pythonVersion = '3.
 
 void formatCode(
     String pythonVersion = '3.12',
-    String srcDir = 'src',
-    boolean isSlim = true,
-    String poetryVersion = '1.8.3'
+    String poetryVersion = '1.8.3',
+    boolean imageIsSlim = true,
+    String srcDir = 'src'
     ) {
-    String dockerImage = getDockerImage(poetryVersion, pythonVersion, isSlim)
+    String dockerImage = getDockerImage(
+        poetryVersion: poetryVersion,
+        pythonVersion: pythonVersion,
+        isSlim: imageIsSlim
+        )
     docker
     .image("${dockerImage}")
     .inside('-e POETRY_VIRTUALENVS_IN_PROJECT=true -u root:root') {
@@ -24,20 +28,25 @@ void formatCode(
 
 void testCode(
     String pythonVersion = '3.12',
+    String poetryVersion = '1.8.3',
     String dockerArgs = '',
-    String coveragercId = '.coveragerc',
+    boolean imageIsSlim = true,
+    Stirng pytestArgs = '',
     String coverageDir = 'coverage-reports',
-    boolean isSlim = true,
-    String poetryVersion = '1.8.3'
+    String coveragercId = '.coveragerc'
     ) {
-    String dockerImage = getDockerImage(poetryVersion, pythonVersion, isSlim)
+    String dockerImage = getDockerImage(
+        poetryVersion: poetryVersion,
+        pythonVersion: pythonVersion,
+        isSlim: imageIsSlim
+        )
     docker
     .image("${dockerImage}")
     .inside("""-e POETRY_VIRTUALENVS_IN_PROJECT=true -u root:root ${dockerArgs}""") {
         sh 'poetry install'
         configFileProvider([configFile(fileId: "${coveragercId}", variable: 'COVERAGERC')]) {
                 sh """poetry run pytest \
-                --resetdb \
+                ${pytestArgs} \
                 --cov \
                 --cov-config=${COVERAGERC} \
                 --cov-report=xml:${coverageDir}/coverage-${pythonVersion}.xml \
