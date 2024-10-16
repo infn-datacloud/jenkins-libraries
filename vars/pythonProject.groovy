@@ -1,4 +1,4 @@
-String getDockerImage(String poetryVersion = '1.8.3', String pythonVersion = '3.12', Bool isSlim = true) {
+String getDockerImage(String poetryVersion = '1.8.3', String pythonVersion = '3.12', boolean isSlim = true) {
     String dockerImage = "ghcr.io/withlogicco/poetry:${poetryVersion}-python-${pythonVersion}"
     if (isSlim) {
         dockerImage += '-slim'
@@ -6,7 +6,7 @@ String getDockerImage(String poetryVersion = '1.8.3', String pythonVersion = '3.
     return dockerImage
 }
 
-void formatCode(String pythonVersion = '3.12', String srcDir = 'src', Bool isSlim = true) {
+void formatCode(String pythonVersion = '3.12', String srcDir = 'src', boolean isSlim = true) {
     String dockerImage = getDockerImage(poetryVersion, pythonVersion, isSlim)
     docker
     .image("${dockerImage}")
@@ -22,7 +22,7 @@ void testCode(
     String dockerArgs = '',
     String coveragercId = '.coveragerc',
     String coverageDir = 'coverage-reports',
-    Bool isSlim = true,
+    boolean isSlim = true,
     String poetryVersion = '1.8.3'
     ) {
     String dockerImage = getDockerImage(poetryVersion, pythonVersion, isSlim)
