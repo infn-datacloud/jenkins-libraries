@@ -3,8 +3,7 @@ String getDockerImage(Map args) {
         pythonVersion: '3.12',
         poetryVersion: '1.8.3',
         isSlim: true
-    ]
-    kwargs << args
+    ] + args
     String dockerImage = "ghcr.io/withlogicco/poetry:${kwargs.poetryVersion}-python-${kwargs.pythonVersion}"
     if (kwargs.isSlim) {
         dockerImage += '-slim'
@@ -18,8 +17,7 @@ void formatCode(Map args) {
         poetryVersion: '1.8.3',
         imageIsSlim: true,
         srcDir: 'src'
-    ]
-    kwargs << args
+    ] + args
     String dockerImage = getDockerImage(
         poetryVersion: kwargs.poetryVersion,
         pythonVersion: kwargs.pythonVersion,
@@ -43,8 +41,7 @@ void testCode(Map args) {
         pytestArgs: '',
         coverageDir: 'coverage-reports',
         coveragercId: '.coveragerc'
-    ]
-    kwargs << args
+    ] + args
     String dockerImage = getDockerImage(
         poetryVersion: kwargs.poetryVersion,
         pythonVersion: kwargs.pythonVersion,

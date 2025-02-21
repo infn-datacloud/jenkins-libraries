@@ -5,8 +5,7 @@ void analysis(Map args) {
         srcDir: 'src',
         testsDir: 'tests',
         pythonVersions: '3.12'
-    ]
-    kwargs << args
+    ] + args
     archiveArtifacts artifacts: "${kwargs.coverageDir}/**/*", fingerprint: true
     sh """docker run --rm \
         -e SONAR_HOST_URL=${kwargs.sonarHost} \
