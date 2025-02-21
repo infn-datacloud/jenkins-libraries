@@ -6,7 +6,7 @@ Object buildImage(Map args) {
     String name = kwargs.imageName
     if ("${kwargs.pythonVersion}" != '') {
         buildArgs += "--build-arg PYTHON_VERSION=${kwargs.pythonVersion}"
-        kwargs.customTags.add("python-${kwargs.pythonVersion}")
+        kwargs.customTags.add("python${kwargs.pythonVersion}")
     }
     if (kwargs.customTags.size() > 0) {
         String tags = kwargs.customTags.join('-')
@@ -16,7 +16,7 @@ Object buildImage(Map args) {
 }
 
 void pushImage(Map args) {
-    Map kwargs = [latestMatch: 'python-3.11']
+    Map kwargs = [latestMatch: 'python3.11']
     kwargs << args
     /* groovylint-disable-next-line NoDef, UnusedVariable, VariableTypeRequired */
     def (imageName, imageTag) = kwargs.srcImage.tag().tokenize(':')
@@ -24,7 +24,7 @@ void pushImage(Map args) {
         if ("${env.BRANCH_NAME}" == 'main') {
             String gitTag = sh(returnStdout: true, script: 'git tag --sort version:refname | tail -1').trim()
             kwargs.srcImage.push()
-            if (imageTag.contains("${latestMatch}")) {
+            if (imageTag.contains("${kwargs.latestMatch}")) {
                 kwargs.srcImage.push('latest')
                 kwargs.srcImage.push("${gitTag}")
             }
@@ -32,7 +32,6 @@ void pushImage(Map args) {
         } else {
             kwargs.srcImage.push("${env.BRANCH_NAME}-${imageTag}")
         }
-        kwargs.srcImage.push("${env.GIT_COMMIT}-${imageTag}")
     }
 }
 
