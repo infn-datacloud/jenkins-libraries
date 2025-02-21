@@ -16,15 +16,14 @@ Object buildImage(Map args) {
 }
 
 void pushImage(Map args) {
-    Map kwargs = [latestMatch: 'python3.11']
-    kwargs << args
+    Map kwargs = [latestMatch: 'python3.11'] + args
     /* groovylint-disable-next-line NoDef, UnusedVariable, VariableTypeRequired */
     def (imageName, imageTag) = kwargs.srcImage.tag().tokenize(':')
     docker.withRegistry("${kwargs.registryUrl}", "${kwargs.registryCredentialsName}") {
         if ("${env.BRANCH_NAME}" == 'main') {
             String gitTag = sh(returnStdout: true, script: 'git tag --sort version:refname | tail -1').trim()
             kwargs.srcImage.push()
-            if (imageTag.contains("${kwargs.latestMatch}")) {
+            if (imageTag =~ kwargs.latestMatch) {
                 kwargs.srcImage.push('latest')
                 kwargs.srcImage.push("${gitTag}")
             }
