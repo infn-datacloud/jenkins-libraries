@@ -19,19 +19,14 @@ void pushImage(Map args) {
     /* groovylint-disable-next-line NoDef, UnusedVariable, VariableTypeRequired */
     def (imageName, imageTag) = kwargs.srcImage.tag().tokenize(':')
     docker.withRegistry("${kwargs.registryUrl}", "${kwargs.registryCredentialsName}") {
-        if ("${env.BRANCH_NAME}" == 'main') {
-            String gitTag = sh(returnStdout: true, script: 'git tag --sort version:refname | tail -1').trim()
-            if (imageTag =~ kwargs.latestMatch) {
+        String latestGitTag = sh(returnStdout: true, script: 'git tag --sort version:refname | tail -1').trim()
+        if (imageTag =~ kwargs.latestMatch) {
+            if (env.BRANCH_NAME == latestGitTag) {
                 kwargs.srcImage.push('latest')
-                kwargs.srcImage.push("${gitTag}")
             }
-            kwargs.srcImage.push("${gitTag}-${imageTag}")
-        } else {
-            if (imageTag =~ kwargs.latestMatch) {
-                kwargs.srcImage.push("${env.BRANCH_NAME}")
-            }
-            kwargs.srcImage.push("${env.BRANCH_NAME}-${imageTag}")
+            kwargs.srcImage.push("${env.BRANCH_NAME}")
         }
+        kwargs.srcImage.push("${env.BRANCH_NAME}-${imageTag}")
     }
 }
 
