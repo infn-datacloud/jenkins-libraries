@@ -28,7 +28,7 @@ void formatCode(Map args) {
     .inside('-e POETRY_VIRTUALENVS_IN_PROJECT=true -u root:root') {
         sh 'poetry install'
         sh "ruff check ${kwargs.srcDir}"
-        sh 'ruff format --check .'
+        sh "ruff format --check ${kwargs.srcDir}"
     }
 }
 
