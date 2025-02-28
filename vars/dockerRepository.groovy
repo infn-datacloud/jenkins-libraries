@@ -74,3 +74,7 @@ void buildAndPushImage(Map args) {
             )
     }
 }
+
+void periodicTrigger(String period) {
+    cron(env.BRANCH_NAME.find(/^v/) ? period : '')
+}
