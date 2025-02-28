@@ -75,6 +75,7 @@ void buildAndPushImage(Map args) {
     }
 }
 
-void periodicTrigger(String period) {
-    cron(env.BRANCH_NAME.find(/^v/) ? period : '')
+String periodicTrigger(String branchName, String period) {
+    String latestGitTag = sh(returnStdout: true, script: 'git tag --sort version:refname | tail -1').trim()
+    return branchName == latestGitTag ? period : ''
 }
