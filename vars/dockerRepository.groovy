@@ -75,7 +75,6 @@ void buildAndPushImage(Map args) {
     }
 }
 
-String periodicTrigger(String branchName, String period) {
-    String latestGitTag = sh(returnStdout: true, script: 'git tag --sort version:refname | tail -1').trim()
-    return branchName == latestGitTag ? period : ''
+String periodicTrigger(String branchName, String period = '@weekly', String pattern = /^v/) {
+    return branchName.find(pattern) ? period : ''
 }
